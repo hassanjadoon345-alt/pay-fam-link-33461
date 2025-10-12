@@ -177,7 +177,12 @@ const MemberProfile = () => {
         </Card>
 
         {/* Payment Grid */}
-        <PaymentGrid memberId={member.id} onPaymentClick={handlePaymentClick} />
+        <PaymentGrid 
+          memberId={member.id}
+          memberPhone={member.phone_number}
+          memberName={member.name}
+          onPaymentClick={handlePaymentClick}
+        />
       </main>
 
       {/* Payment Modal */}

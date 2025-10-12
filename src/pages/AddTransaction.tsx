@@ -27,6 +27,7 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 interface Member {
   id: string;
   name: string;
+  phone_number: string;
   monthly_fee: number;
 }
 
@@ -43,7 +44,7 @@ const AddTransaction = () => {
     try {
       const { data, error } = await supabase
         .from("members")
-        .select("id, name, monthly_fee")
+        .select("id, name, phone_number, monthly_fee")
         .eq("active", true)
         .order("name");
 
@@ -125,6 +126,15 @@ const AddTransaction = () => {
       if (ledgerError) throw ledgerError;
 
       toast.success("Transaction recorded successfully!");
+
+      // Send receipt via WhatsApp
+      const selectedMember = members.find(m => m.id === data.member_id);
+      if (selectedMember) {
+        const receiptMessage = `*PAYMENT RECEIPT*\n\nMember: ${selectedMember.name}\nAmount Paid: Rs. ${parseFloat(data.amount).toLocaleString()}\nPayment Date: ${data.payment_date}\nPayment Method: ${data.payment_method}\nReference: ${data.reference || 'N/A'}\n\nThank you for your payment!`;
+        const whatsappUrl = `https://wa.me/${selectedMember.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(receiptMessage)}`;
+        window.open(whatsappUrl, '_blank');
+      }
+
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error adding transaction:", error);

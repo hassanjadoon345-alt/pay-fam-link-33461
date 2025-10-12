@@ -49,6 +49,12 @@ const PaymentModal = ({ open, onOpenChange, payment, member, onSuccess }: Paymen
       if (error) throw error;
 
       toast.success("ادائیگی رجسٹر ہوگئی! Payment recorded successfully");
+
+      // Send receipt via WhatsApp
+      const receiptMessage = `*PAYMENT RECEIPT*\n\nMember: ${member.name}\nAmount Paid: Rs. ${parseFloat(amount).toLocaleString()}\nPayment Date: ${paymentDate}\nPayment Method: ${paymentMethod}\nReference: ${reference || 'N/A'}\n\nThank you for your payment!`;
+      const whatsappUrl = `https://wa.me/${member.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(receiptMessage)}`;
+      window.open(whatsappUrl, '_blank');
+
       onSuccess();
       setAmount("");
       setReference("");
