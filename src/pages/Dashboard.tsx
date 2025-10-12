@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Users, DollarSign, AlertCircle, TrendingUp, LogOut, Menu, Wallet } from "lucide-react";
+import { Users, DollarSign, AlertCircle, TrendingUp, LogOut, Menu, Wallet, Receipt } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import MembersList from "@/components/MembersList";
 
@@ -90,9 +90,15 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <Button variant="ghost" size="icon" onClick={handleSignOut}>
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/add-transaction")} className="gap-2">
+              <Receipt className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Payment</span>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
