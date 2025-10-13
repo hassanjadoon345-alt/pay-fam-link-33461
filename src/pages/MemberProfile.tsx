@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, MessageCircle, Phone, Mail, MapPin, Calendar, DollarSign } from "lucide-react";
+import { ArrowLeft, MessageCircle, Phone, Mail, MapPin, Calendar, DollarSign, Trash2 } from "lucide-react";
 import PaymentGrid from "@/components/PaymentGrid";
 import PaymentModal from "@/components/PaymentModal";
+import DeleteMemberDialog from "@/components/DeleteMemberDialog";
+import { generatePaymentMessage, sendWhatsAppMessage } from "@/utils/whatsappMessages";
 
 interface Member {
   id: string;
@@ -31,6 +33,7 @@ const MemberProfile = () => {
   const [loading, setLoading] = useState(true);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -58,8 +61,9 @@ const MemberProfile = () => {
 
   const handleWhatsApp = () => {
     if (!member) return;
-    const message = encodeURIComponent(`السلام علیکم ${member.name} صاحب، آپ کی ماہانہ فیس ${member.monthly_fee} روپے ہے۔`);
-    window.open(`https://wa.me/${member.phone_number}?text=${message}`, "_blank");
+    const currentMonth = new Date().toLocaleDateString('ur-PK', { month: 'long' });
+    const message = generatePaymentMessage(member.name, currentMonth, member.monthly_fee, 'unpaid');
+    sendWhatsAppMessage(member.phone_number, message);
   };
 
   const handleCall = () => {
@@ -100,6 +104,14 @@ const MemberProfile = () => {
             <h1 className="text-lg font-semibold truncate">{member.name}</h1>
             <p className="text-xs text-muted-foreground">{member.membership_type}</p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setDeleteDialogOpen(true)}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 
@@ -195,6 +207,14 @@ const MemberProfile = () => {
           setPaymentModalOpen(false);
           fetchMember();
         }}
+      />
+
+      {/* Delete Member Dialog */}
+      <DeleteMemberDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        memberId={member.id}
+        memberName={member.name}
       />
     </div>
   );

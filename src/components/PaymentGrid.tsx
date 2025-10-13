@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
+import MonthlyReportDialog from "./MonthlyReportDialog";
+import { generatePaymentMessage, sendWhatsAppMessage } from "@/utils/whatsappMessages";
 
 interface Payment {
   id: string;
@@ -30,7 +35,11 @@ const MONTHS = [
 const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: PaymentGridProps) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<number>(0);
   const currentYear = new Date().getFullYear();
+
+  const paidCount = payments.filter(p => p.status === 'paid').length;
 
   useEffect(() => {
     fetchPayments();
@@ -85,30 +94,45 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
   };
 
   const sendPaymentReminder = (payment: Payment, monthName: string) => {
-    let message = '';
+    const status = payment.status === 'paid' ? 'paid' : 
+                   payment.status === 'overdue' ? 'overdue' : 'unpaid';
     
-    if (payment.status === 'paid') {
-      message = `Dear ${memberName},\n\nYour payment for ${monthName} ${currentYear} has been received.\n\nAmount Paid: Rs. ${payment.amount_paid}\nPaid On: ${payment.paid_on}\n\nThank you!`;
-    } else if (payment.status === 'partial') {
-      const outstanding = payment.amount_due - payment.amount_paid;
-      message = `Dear ${memberName},\n\nPartial payment received for ${monthName} ${currentYear}.\n\nAmount Due: Rs. ${payment.amount_due}\nAmount Paid: Rs. ${payment.amount_paid}\nOutstanding: Rs. ${outstanding}\nDue Date: ${payment.due_date}\n\nPlease pay the remaining amount.`;
-    } else if (payment.status === 'overdue') {
-      message = `Dear ${memberName},\n\n⚠️ OVERDUE PAYMENT REMINDER\n\nYour payment for ${monthName} ${currentYear} is overdue.\n\nAmount Due: Rs. ${payment.amount_due}\nDue Date: ${payment.due_date}\n\nPlease make payment at your earliest convenience.`;
-    } else {
-      message = `Dear ${memberName},\n\nPayment reminder for ${monthName} ${currentYear}.\n\nAmount Due: Rs. ${payment.amount_due}\nDue Date: ${payment.due_date}\n\nPlease make payment before the due date.`;
-    }
+    const message = generatePaymentMessage(
+      memberName,
+      monthName,
+      payment.amount_due,
+      status as 'paid' | 'unpaid' | 'overdue'
+    );
     
-    const whatsappUrl = `https://wa.me/${memberPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    sendWhatsAppMessage(memberPhone, message);
+    toast.success("WhatsApp پر پیغام بھیجا جا رہا ہے");
+  };
+
+  const openMonthReport = (month: number) => {
+    setSelectedMonth(month);
+    setReportDialogOpen(true);
   };
 
   return (
     <Card className="border-border/50 shadow-card">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Payments {currentYear}</span>
-          <Badge variant="outline">{payments.length} / 12 months</Badge>
-        </CardTitle>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-xl">Payment Overview {currentYear}</CardTitle>
+            <div className="text-sm text-muted-foreground mt-1">
+              {paidCount} / {MONTHS.length} months paid
+            </div>
+          </div>
+          <Button
+            onClick={() => openMonthReport(new Date().getMonth() + 1)}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Current Month Report
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
@@ -177,6 +201,13 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
           </div>
         </div>
       </CardContent>
+
+      <MonthlyReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        month={selectedMonth}
+        year={currentYear}
+      />
     </Card>
   );
 };

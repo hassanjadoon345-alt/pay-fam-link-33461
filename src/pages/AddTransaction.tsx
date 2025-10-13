@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { generateReceiptMessage, generateReceiptNumber } from "@/utils/receiptGenerator";
+import { sendWhatsAppMessage } from "@/utils/whatsappMessages";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -125,14 +127,34 @@ const AddTransaction = () => {
 
       if (ledgerError) throw ledgerError;
 
-      toast.success("Transaction recorded successfully!");
+      toast.success("لین دین شامل ہو گیا!");
 
-      // Send receipt via WhatsApp
+      // Generate and send receipt via WhatsApp
       const selectedMember = members.find(m => m.id === data.member_id);
-      if (selectedMember) {
-        const receiptMessage = `*PAYMENT RECEIPT*\n\nMember: ${selectedMember.name}\nAmount Paid: Rs. ${parseFloat(data.amount).toLocaleString()}\nPayment Date: ${data.payment_date}\nPayment Method: ${data.payment_method}\nReference: ${data.reference || 'N/A'}\n\nThank you for your payment!`;
-        const whatsappUrl = `https://wa.me/${selectedMember.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(receiptMessage)}`;
-        window.open(whatsappUrl, '_blank');
+      if (selectedMember && monthlyPaymentId) {
+        const MONTHS_URDU = [
+          'جنوری', 'فروری', 'مارچ', 'اپریل', 'مئی', 'جون',
+          'جولائی', 'اگست', 'ستمبر', 'اکتوبر', 'نومبر', 'دسمبر'
+        ];
+
+        // Get the monthly payment to determine status
+        const { data: updatedMonthlyPayment } = await supabase
+          .from("monthly_payments")
+          .select("*")
+          .eq("id", monthlyPaymentId)
+          .single();
+
+        const receiptMessage = generateReceiptMessage({
+          memberName: selectedMember.name,
+          amount: parseFloat(data.amount),
+          paymentDate: data.payment_date,
+          month: MONTHS_URDU[month - 1],
+          year: year,
+          status: updatedMonthlyPayment?.status || 'paid',
+          receiptNumber: generateReceiptNumber()
+        });
+
+        sendWhatsAppMessage(selectedMember.phone_number, receiptMessage);
       }
 
       navigate("/dashboard");
