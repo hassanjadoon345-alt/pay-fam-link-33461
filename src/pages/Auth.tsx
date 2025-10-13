@@ -8,6 +8,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { UserPlus, LogIn, Wallet } from "lucide-react";
+import { z } from "zod";
+
+// Validation schemas
+const signUpSchema = z.object({
+  fullName: z.string()
+    .trim()
+    .min(2, { message: "Name must be at least 2 characters" })
+    .max(100, { message: "Name must be less than 100 characters" })
+    .regex(/^[a-zA-Z\u0600-\u06FF\s]+$/, { message: "Name can only contain letters and spaces" }),
+  email: z.string()
+    .trim()
+    .email({ message: "Invalid email address" })
+    .max(255, { message: "Email must be less than 255 characters" }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" }),
+});
+
+const signInSchema = z.object({
+  email: z.string()
+    .trim()
+    .email({ message: "Invalid email address" })
+    .max(255, { message: "Email must be less than 255 characters" }),
+  password: z.string()
+    .min(1, { message: "Password is required" }),
+});
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -39,18 +67,23 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("signup-email") as string;
-    const password = formData.get("signup-password") as string;
-    const fullName = formData.get("full-name") as string;
+    const rawData = {
+      email: formData.get("signup-email") as string,
+      password: formData.get("signup-password") as string,
+      fullName: formData.get("full-name") as string,
+    };
 
     try {
+      // Validate input data
+      const validatedData = signUpSchema.parse(rawData);
+
       const { error: signUpError, data } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validatedData.email,
+        password: validatedData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: fullName,
+            full_name: validatedData.fullName,
           },
         },
       });
@@ -63,15 +96,22 @@ const Auth = () => {
           .from("profiles")
           .insert({
             id: data.user.id,
-            full_name: fullName,
+            full_name: validatedData.fullName,
           });
 
-        if (profileError) console.error("Profile creation error:", profileError);
-
-        toast.success("خوش آمدید! Account created successfully");
+        if (profileError) {
+          toast.error("Account created but profile setup failed. Please contact support.");
+        } else {
+          toast.success("خوش آمدید! Account created successfully");
+        }
       }
     } catch (error: any) {
-      toast.error(error.message || "خرابی! Error signing up");
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast.error(firstError.message);
+      } else {
+        toast.error(error.message || "خرابی! Error signing up");
+      }
     } finally {
       setLoading(false);
     }
@@ -82,20 +122,30 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("signin-email") as string;
-    const password = formData.get("signin-password") as string;
+    const rawData = {
+      email: formData.get("signin-email") as string,
+      password: formData.get("signin-password") as string,
+    };
 
     try {
+      // Validate input data
+      const validatedData = signInSchema.parse(rawData);
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validatedData.email,
+        password: validatedData.password,
       });
 
       if (error) throw error;
 
       toast.success("خوش آمدید! Welcome back");
     } catch (error: any) {
-      toast.error(error.message || "Invalid credentials");
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast.error(firstError.message);
+      } else {
+        toast.error(error.message || "Invalid credentials");
+      }
     } finally {
       setLoading(false);
     }
