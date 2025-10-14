@@ -127,7 +127,7 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
   return (
     <Card className="border-border/50 shadow-card">
       <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3",>
           <div>
             <CardTitle className="text-xl">Payment Overview {currentYear}</CardTitle>
             <div className="text-sm text-muted-foreground mt-1">
@@ -146,7 +146,7 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3",>
           {MONTHS.map((monthName, index) => {
   const monthNumber = index + 1;
   const payment = getPaymentForMonth(monthNumber);
