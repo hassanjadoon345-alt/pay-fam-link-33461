@@ -203,17 +203,17 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 rounded bg-muted border-2 border-border" />
             <span className="text-muted-foreground">Not Due</span>
-          </div>
-      </CardContent>
+          </div>  {/* */}
+  </CardContent>
 
-      <MonthlyReportDialog
-        open={reportDialogOpen}
-        onOpenChange={setReportDialogOpen}
-        month={selectedMonth}
-        year={currentYear}
-      />
-    </Card>
-  );
+  <MonthlyReportDialog
+    open={reportDialogOpen}
+    onOpenChange={setReportDialogOpen}
+    month={selectedMonth}
+    year={currentYear}
+  />
+</Card>
+);
 }
 
 export default PaymentGrid;
