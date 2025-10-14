@@ -165,13 +165,7 @@ return (
     </button>
   </div>
 );
-                  className={cn(
-                    "relative aspect-square rounded-xl border-2 transition-all w-full",
-                    "flex flex-col items-center justify-center gap-1 p-3",
-                    "cursor-pointer active:scale-95",
-                    getStatusColor(status)
-                  )}
-                >
+                  
                   <div className="text-2xl leading-none">{getStatusIcon(status)}</div>
                   <div className="text-xs font-medium">{monthName}</div>
                   {payment && (
