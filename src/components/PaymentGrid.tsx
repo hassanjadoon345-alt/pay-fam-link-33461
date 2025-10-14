@@ -31,6 +31,17 @@ const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
+// ✨ blank month ka default payment object
+const makeBlankPayment = (monthNumber: number, year: number, memberId: string) => ({
+  id: "",
+  member_id: memberId,   // 👈 agar aapke model me 'memberId' hai to is naam ko usi ke mutabiq kar dein
+  year,
+  month: monthNumber,
+  amount_due: 0,
+  amount_paid: 0,
+  status: "not-due",
+  due_date: ""
+});
 
 const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: PaymentGridProps) => {
   const [payments, setPayments] = useState<Payment[]>([]);
