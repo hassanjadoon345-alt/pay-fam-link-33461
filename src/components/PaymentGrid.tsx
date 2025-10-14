@@ -14,6 +14,7 @@ interface Payment {
   year: number;
   month: number;
   amount_due: number;
+
   amount_paid: number;
   status: string;
   due_date: string;
@@ -31,10 +32,10 @@ const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
-// ✨ blank month ka default payment object
+
 const makeBlankPayment = (monthNumber: number, year: number, memberId: string) => ({
   id: "",
-  member_id: memberId,   // 👈 agar aapke model me 'memberId' hai to is naam ko usi ke mutabiq kar dein
+  member_id: memberId,
   year,
   month: monthNumber,
   amount_due: 0,
@@ -127,7 +128,7 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
   return (
     <Card className="border-border/50 shadow-card">
       <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3",>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <CardTitle className="text-xl">Payment Overview {currentYear}</CardTitle>
             <div className="text-sm text-muted-foreground mt-1">
@@ -146,46 +147,44 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3",>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
           {MONTHS.map((monthName, index) => {
-  const monthNumber = index + 1;
-  const payment = getPaymentForMonth(monthNumber);
-  const safePayment = payment ?? makeBlankPayment(monthNumber, currentYear, memberId);
-  const status = safePayment.status;
+            const monthNumber = index + 1;
+            const payment = getPaymentForMonth(monthNumber);
+            const safePayment = payment ?? makeBlankPayment(monthNumber, currentYear, memberId);
+            const status = safePayment.status;
 
-  return (
-    <div key={monthNumber} className="relative">
-      <button
-        type="button"
-        onClick={() => onPaymentClick(safePayment)}
-        className={`w-full h-full ${getStatusColor(status)} rounded-lg p-3`}
-      >
-        <div className="text-2xl leading-none">{getStatusIcon(status)}</div>
-        <div className="text-xs font-medium">{monthName}</div>
-        {safePayment && (
-          <div className="text-[10px] font-mono">
-            {Number(safePayment.amount_paid).toLocaleString()}
-          </div>
-        )}
-      </button>
+            return (
+              <div key={monthNumber} className="relative">
+                <button
+                  type="button"
+                  onClick={() => onPaymentClick(safePayment)}
+                  className={`w-full h-full ${getStatusColor(status)} rounded-lg p-3`}
+                >
+                  <div className="text-2xl leading-none">{getStatusIcon(status)}</div>
+                  <div className="text-xs font-medium">{monthName}</div>
+                  <div className="text-[10px] font-mono">
+                    {Number(safePayment.amount_paid).toLocaleString()}
+                  </div>
+                </button>
 
-      {safePayment && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            sendPaymentReminder(safePayment, monthName);
-          }}
-          className="absolute -top-2 -right-2 bg-green-600 hover:bg-green-700 text-white rounded-full p-1"
-          title="Send WhatsApp message"
-        >
-          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M17 8l4 4-4 4M3 12h18" />
-          </svg>
-        </button>
-      )}
-    </div>
-  );
-})}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    sendPaymentReminder(safePayment, monthName);
+                  }}
+                  className="absolute -top-2 -right-2 bg-green-600 hover:bg-green-700 text-white rounded-full p-1"
+                  title="Send WhatsApp message"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 8l4 4-4 4M3 12h18" />
+                  </svg>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        
         {/* Legend */}
         <div className="mt-6 pt-6 border-t border-border/50 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
           <div className="flex items-center gap-2">
@@ -203,17 +202,18 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 rounded bg-muted border-2 border-border" />
             <span className="text-muted-foreground">Not Due</span>
-          </div>  {/* */}
-  </CardContent>
+          </div>
+        </div>
+      </CardContent>
 
-  <MonthlyReportDialog
-    open={reportDialogOpen}
-    onOpenChange={setReportDialogOpen}
-    month={selectedMonth}
-    year={currentYear}
-  />
-</Card>
-);
+      <MonthlyReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        month={selectedMonth}
+        year={currentYear}
+      />
+    </Card>
+  );
 }
 
 export default PaymentGrid;
