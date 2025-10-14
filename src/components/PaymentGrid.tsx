@@ -204,7 +204,6 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
             <div className="h-4 w-4 rounded bg-muted border-2 border-border" />
             <span className="text-muted-foreground">Not Due</span>
           </div>
-        </div>
       </CardContent>
 
       <MonthlyReportDialog
