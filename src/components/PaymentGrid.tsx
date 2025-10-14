@@ -149,21 +149,22 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
           {MONTHS.map((monthName, index) => {
             const monthNumber = index + 1;
-            const payment = getPaymentForMonth(monthNumber);
-            const status = payment?.status || "not-due";
+            // ✅ agar payment nahi mila to blank default banao (clickable)
+const payment = getPaymentForMonth(monthNumber);
+const safePayment = payment ?? makeBlankPayment(monthNumber, currentYear, memberId);
+const status = safePayment.status;
 
-            return (
-              <div key={monthNumber} className="relative group">
-                <button
-                  onClick={() => onPaymentClick(payment || { 
-                    id: '', 
-                    year: currentYear, 
-                    month: monthNumber, 
-                    amount_due: 0, 
-                    amount_paid: 0, 
-                    status: 'not-due', 
-                    due_date: '' 
-                  })}
+return (
+  <div key={monthNumber} className="relative">
+    <button
+      type="button"
+      onClick={() => onPaymentClick(safePayment)} // ab blank bhi editable
+      className={`w-full h-full ${getStatusClass(status)} rounded-lg p-3`}
+    >
+      {MONTHS[index]}
+    </button>
+  </div>
+);
                   className={cn(
                     "relative aspect-square rounded-xl border-2 transition-all w-full",
                     "flex flex-col items-center justify-center gap-1 p-3",
