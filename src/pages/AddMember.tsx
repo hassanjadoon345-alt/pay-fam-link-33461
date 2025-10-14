@@ -61,6 +61,7 @@ const AddMember = () => {
           membership_type: data.membership_type,
           notes: data.notes || null,
           active: true,
+          user_id: null, // Members created by admin don't have user accounts initially
         },
       ]);
 
