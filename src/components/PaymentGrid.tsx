@@ -215,6 +215,6 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
       />
     </Card>
   );
-};
+}
 
 export default PaymentGrid;
