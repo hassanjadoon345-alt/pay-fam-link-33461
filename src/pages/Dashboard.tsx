@@ -85,8 +85,8 @@ const Dashboard = () => {
               <Wallet className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">MemberPay</h1>
-              <p className="text-xs text-muted-foreground">Payment Manager</p>
+              <h1 className="text-xl font-bold text-foreground">Hazara Mayyat Committee</h1>
+              <p className="text-xs text-muted-foreground">Payment Management System</p>
             </div>
           </div>
           

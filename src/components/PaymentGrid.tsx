@@ -144,13 +144,19 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
             return (
               <div key={monthNumber} className="relative group">
                 <button
-                  onClick={() => payment && onPaymentClick(payment)}
-                  disabled={!payment}
+                  onClick={() => onPaymentClick(payment || { 
+                    id: '', 
+                    year: currentYear, 
+                    month: monthNumber, 
+                    amount_due: 0, 
+                    amount_paid: 0, 
+                    status: 'not-due', 
+                    due_date: '' 
+                  })}
                   className={cn(
                     "relative aspect-square rounded-xl border-2 transition-all w-full",
                     "flex flex-col items-center justify-center gap-1 p-3",
-                    "disabled:cursor-not-allowed disabled:opacity-50",
-                    payment && "cursor-pointer active:scale-95",
+                    "cursor-pointer active:scale-95",
                     getStatusColor(status)
                   )}
                 >

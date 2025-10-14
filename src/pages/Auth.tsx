@@ -47,15 +47,38 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (session) {
-        navigate("/dashboard");
+        // Check role and redirect
+        setTimeout(async () => {
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .single();
+
+          if (roleData?.role === 'member') {
+            navigate("/member-dashboard");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 0);
       }
     });
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session) {
-        navigate("/dashboard");
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (roleData?.role === 'member') {
+          navigate("/member-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }
     });
 
@@ -161,7 +184,7 @@ const Auth = () => {
             </div>
           </div>
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            MemberPay
+            Hazara Mayyat Committee
           </h1>
           <p className="text-muted-foreground">ممبر اور ادائیگی کا نظام</p>
         </div>
