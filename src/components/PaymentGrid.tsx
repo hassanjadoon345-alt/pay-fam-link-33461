@@ -44,7 +44,7 @@ const makeBlankPayment = (monthNumber: number, year: number, memberId: string) =
   due_date: ""
 });
 
-const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: PaymentGridProps) => {
+const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick, refreshTrigger }: PaymentGridProps & { refreshTrigger?: number }) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
@@ -55,7 +55,7 @@ const PaymentGrid = ({ memberId, memberPhone, memberName, onPaymentClick }: Paym
 
   useEffect(() => {
     fetchPayments();
-  }, [memberId]);
+  }, [memberId, refreshTrigger]);
 
   const fetchPayments = async () => {
     try {

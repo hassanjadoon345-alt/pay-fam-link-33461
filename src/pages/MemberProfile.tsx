@@ -34,6 +34,7 @@ const MemberProfile = () => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -194,6 +195,7 @@ const MemberProfile = () => {
           memberPhone={member.phone_number}
           memberName={member.name}
           onPaymentClick={handlePaymentClick}
+          refreshTrigger={refreshTrigger}
         />
       </main>
 
@@ -205,6 +207,7 @@ const MemberProfile = () => {
         member={member}
         onSuccess={() => {
           setPaymentModalOpen(false);
+          setRefreshTrigger(prev => prev + 1);
           fetchMember();
         }}
       />

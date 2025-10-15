@@ -73,8 +73,17 @@ const PaymentModal = ({ open, onOpenChange, payment, member, onSuccess }: Paymen
 
       toast.success("ادائیگی رجسٹر ہوگئی! Payment recorded successfully");
 
-      // Send receipt via WhatsApp
-      const receiptMessage = `*PAYMENT RECEIPT*\n\nMember: ${member.name}\nAmount Paid: Rs. ${parseFloat(amount).toLocaleString()}\nPayment Date: ${paymentDate}\nPayment Method: ${paymentMethod}\nReference: ${reference || 'N/A'}\n\nThank you for your payment!`;
+      // Send receipt via WhatsApp in Urdu
+      const { generateReceiptMessage, generateReceiptNumber } = await import("@/utils/receiptGenerator");
+      const receiptMessage = generateReceiptMessage({
+        memberName: member.name,
+        amount: parseFloat(amount),
+        paymentDate: paymentDate,
+        month: new Date(payment.year, payment.month - 1).toLocaleDateString('ur-PK', { month: 'long' }),
+        year: payment.year,
+        status: 'paid',
+        receiptNumber: generateReceiptNumber()
+      });
       const whatsappUrl = `https://wa.me/${member.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(receiptMessage)}`;
       window.open(whatsappUrl, '_blank');
 
