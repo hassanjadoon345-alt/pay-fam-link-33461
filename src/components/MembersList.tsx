@@ -15,6 +15,8 @@ interface Member {
   monthly_fee: number;
   membership_type: string;
   active: boolean;
+  total_due?: number;
+  total_paid?: number;
 }
 
 const MembersList = () => {
@@ -29,14 +31,33 @@ const MembersList = () => {
 
   const fetchMembers = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: membersData, error } = await supabase
         .from("members")
         .select("id, name, phone_number, monthly_fee, membership_type, active")
         .eq("active", true)
         .order("name");
 
       if (error) throw error;
-      setMembers(data || []);
+
+      // Fetch payment stats for each member
+      const { data: paymentsData } = await supabase
+        .from("monthly_payments")
+        .select("member_id, amount_due, amount_paid");
+
+      // Calculate totals per member
+      const membersWithStats = (membersData || []).map(member => {
+        const memberPayments = paymentsData?.filter(p => p.member_id === member.id) || [];
+        const total_due = memberPayments.reduce((sum, p) => sum + (Number(p.amount_due) - Number(p.amount_paid)), 0);
+        const total_paid = memberPayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
+        
+        return {
+          ...member,
+          total_due,
+          total_paid
+        };
+      });
+
+      setMembers(membersWithStats);
     } catch (error) {
       console.error("Error fetching members:", error);
       toast.error("Failed to load members");
@@ -92,7 +113,7 @@ const MembersList = () => {
               <div
                 key={member.id}
                 onClick={() => navigate(`/member/${member.id}`)}
-                className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/50 hover:bg-card/50 transition-all cursor-pointer"
+                className="flex items-center justify-between p-4 rounded-xl border-2 border-border/50 hover:border-primary hover:shadow-lg hover:bg-primary/5 transition-all cursor-pointer active:scale-[0.98]"
               >
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground truncate">{member.name}</h3>
@@ -100,13 +121,27 @@ const MembersList = () => {
                     <Phone className="h-3 w-3 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">{maskPhone(member.phone_number)}</p>
                   </div>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">
                       {member.membership_type}
                     </Badge>
-                    <span className="text-sm font-medium text-primary">
-                      Rs. {Number(member.monthly_fee).toLocaleString()}
+                    <span className="text-xs text-muted-foreground">
+                      Monthly: Rs. {Number(member.monthly_fee).toLocaleString()}
                     </span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 text-xs">
+                    <span className="text-success font-medium">
+                      Paid: Rs. {Number(member.total_paid || 0).toLocaleString()}
+                    </span>
+                    {member.total_due && member.total_due > 0 ? (
+                      <span className="text-destructive font-medium">
+                        Due: Rs. {Number(member.total_due).toLocaleString()}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        No dues
+                      </span>
+                    )}
                   </div>
                 </div>
                 <Button

@@ -41,16 +41,10 @@ const Dashboard = () => {
         .select("*", { count: "exact", head: true })
         .eq("active", true);
 
-      // Get current month payments
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1;
-
+      // Get ALL payments (not just current month)
       const { data: payments } = await supabase
         .from("monthly_payments")
-        .select("amount_due, amount_paid, status")
-        .eq("year", currentYear)
-        .eq("month", currentMonth);
+        .select("amount_due, amount_paid, status");
 
       const collected = payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
       const due = payments?.reduce((sum, p) => sum + (Number(p.amount_due) - Number(p.amount_paid)), 0) || 0;
