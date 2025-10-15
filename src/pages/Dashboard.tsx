@@ -69,6 +69,26 @@ const Dashboard = () => {
     }
   };
 
+  // Realtime refresh on payment and status changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'payments_ledger' }, () => {
+        fetchStats();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'monthly_payments' }, () => {
+        fetchStats();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'payments_ledger' }, () => {
+        fetchStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Logged out successfully");
