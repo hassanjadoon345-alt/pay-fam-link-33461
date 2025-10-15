@@ -35,10 +35,33 @@ const PaymentModal = ({ open, onOpenChange, payment, member, onSuccess }: Paymen
 
     setLoading(true);
     try {
+      let monthlyPaymentId = payment.id;
+
+      // If no monthly_payment record exists, create it first
+      if (!monthlyPaymentId || monthlyPaymentId === "") {
+        const dueDate = new Date(payment.year, payment.month - 1, 5);
+        const { data: newMonthlyPayment, error: monthlyError } = await supabase
+          .from("monthly_payments")
+          .insert({
+            member_id: member.id,
+            year: payment.year,
+            month: payment.month,
+            amount_due: member.monthly_fee,
+            due_date: dueDate.toISOString().split('T')[0],
+            status: 'due'
+          })
+          .select()
+          .single();
+
+        if (monthlyError) throw monthlyError;
+        monthlyPaymentId = newMonthlyPayment.id;
+      }
+
+      // Now insert the payment into ledger
       const { error } = await supabase
         .from("payments_ledger")
         .insert({
-          monthly_payment_id: payment.id,
+          monthly_payment_id: monthlyPaymentId,
           member_id: member.id,
           amount: parseFloat(amount),
           payment_date: paymentDate,
